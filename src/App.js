@@ -10,12 +10,15 @@ const { Panel } = Collapse;
 function App() {
 
     const [categories, setCategories] = useState([]);
-    const [selectedCategory, setSelectedCategory] = useState();
+    const [selectedCategory, setSelectedCategory] = useState('');
+    
     const [questions, setQuestions] = useState();
+    const [selectedQuestion, setSelectedQuestion] = useState('');
 
     const [questionTxt, setQuestionTxt] = useState('');
     const [answerTxt, setAnswerTxt] = useState('');
-    const [answers, setAnswers] = useState();
+    const [answers, setAnswers] = useState('');
+
 
     let apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
@@ -58,6 +61,16 @@ function App() {
         console.log(data);
         setQuestions(data);
         // setCategories(data);
+    };
+
+
+    const fetchAnswersForQuestions = async (id) => {
+        console.log('fetch answers for this question id', id);
+        let res = await fetch(`http://localhost:3001/api/v1/categories/:categoryId/questions/:questionId/answers`);
+        let data = await res.json();
+        console.log(data.reverse);
+        setAnswers(data);
+        // setCategories(data);
 
     };
 
@@ -74,45 +87,42 @@ function App() {
         fetchQuestionsForCategory(selectedCategory);
         setQuestionTxt('')
 
-        // the usual fetch request / HINT : look up the stock API request
-        // 1. Make a POST request to create a question
-        // 2. Once the call is successful
-        // 3. Fetch the questions for a category again (reload the questions)
-        // 4. done!
     };
+
+    // the usual fetch request / HINT : look up the stock API request
+    // 1. Make a POST request to create a question
+    // 2. Once the call is successful
+    // 3. Fetch the questions for a category again (reload the questions)
+    // 4. done!
+
 
 
     const createANewAnswer = async () => {
-        console.log('create a question for the category id', selectedCategory)
-        let res = await fetch(`${apiUrl}/api/v1/categories/${selectedCategory}/questions/answers`, {
+        console.log('create an answer for the question id', selectedQuestion)
+        let res = await fetch(`http://localhost:3001/api/v1/categories/:categoryId/questions/:questionId/answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-                // 'Content-Type': 'application/x-www-form-urlencoded',
+
             },
             body: JSON.stringify({ answerTxt: answerTxt })
         });
-        fetchQuestionsForCategory(selectedCategory);
-        setQuestionTxt('')
-        // you will need something called selectedQuestion to keep a track of the question that has been selected
-        // a state variable to store the answer text that the user types in
-
-        // the usual fetch request / HINT : look up the stock API request
-        // 1. Make a POST request to create an answer
-        // 2. Once the call is successful
-        // 3. Fetch the questions for a category again (reload the questions)
-        // 4. done!
+        fetchAnswersForQuestions(selectedQuestion);
+        setAnswerTxt('')
 
     };
 
-    const handleKeypress = (e) => {
-        //it triggers by pressing the enter key
-        if (e.key === 'Enter' && questionTxt) {
-            createNewQuestion();
-        }
+    // you will need something called selectedQuestion to keep a track of the question that has been selected
+    // a state variable to store the answer text that the user types in
+
+    // the usual fetch request / HINT : look up the stock API request
+    // 1. Make a POST request to create an answer
+    // 2. Once the call is successful
+    // 3. Fetch the questions for a category again (reload the questions)
+    // 4. done!
 
 
-    };
+
 
     return (
         <>
@@ -162,21 +172,10 @@ function App() {
 
                 <div className={'col-span-full md:col-span-9 lg:col-span-10 border p-5'}>
 
-                    {/*<button className={'border p-2 pl-4 pr-4 bg-gray-200'} onClick={createNewQuestion}>New Question</button>*/}
 
-                    {/*<Breadcrumb>*/}
-                    {/*    <Breadcrumb.Item>Home</Breadcrumb.Item>*/}
-                    {/*    <Breadcrumb.Item>*/}
-                    {/*        <a href="">Application Center</a>*/}
-                    {/*    </Breadcrumb.Item>*/}
-                    {/*    <Breadcrumb.Item>*/}
-                    {/*        <a href="">Application List</a>*/}
-                    {/*    </Breadcrumb.Item>*/}
-                    {/*    <Breadcrumb.Item>An Application</Breadcrumb.Item>*/}
-                    {/*</Breadcrumb>*/}
 
                     {selectedCategory && <div>
-                        <input onEnter={handleKeypress} value={questionTxt} onChange={(ev) => {
+                        <input value={questionTxt} onChange={(ev) => {
                             setQuestionTxt(ev.currentTarget.value);
                         }} type="text" className={'border p-1 mr-5 w-2/3'} />
                         <Button type={'primary'} onClick={createNewQuestion}>Create new question</Button>
@@ -185,47 +184,41 @@ function App() {
                     </div>}
 
 
-                    {/*<ul>*/}
-                    {/*    {questions && questions.map((question) => {*/}
-                    {/*        return <li key={question.id}>*/}
-                    {/*            /!*{question.questionTxt} - {question.Answers.length}*!/*/}
-                    {/*            {question.questionTxt} {question.Answers.length >0 && <span>- <span>{question.Answers.length}</span></span>}*/}
-                    {/*        </li>*/}
-                    {/*    })}*/}
-                    {/*</ul>*/}
 
                     {selectedCategory && <Collapse accordion>
                         {questions && questions.map((question, index) => {
                             return <Panel header={question.questionTxt} key={index}>
 
 
-                                <List
-                                    size="small"
-                                    // header={<div className={'font-bold'}>Answers List</div>}
-                                    footer={<div>
-                                        <input value={answerTxt} onChange={(ev) => {
-                                            setAnswerTxt(ev.currentTarget.value);
-                                        }} type="text" className={'border p-1 mr-5 w-2/3'} />
-                                        <Button type={'primary'} onClick={createANewAnswer}>Add Answer</Button>
-                                    </div>}
-                                    bordered
-                                    dataSource={question.Answers}
-                                    renderItem={answer => <List.Item>
-                                        <div>
-                                            {answer.answerTxt}
-                                        </div>
 
-                                    </List.Item>}
-                                />
+                            <List
+                            size="small"
+                            // header={<div className={'font-bold'}>Answers List</div>}
+                            footer={<div>
+                                <input value={answerTxt} onChange={(ev) => {
+                                    setAnswerTxt(ev.currentTarget.value);
+                                }} type="text" className={'border p-1 mr-5 w-2/3'}/>
+                                <Button type={'primary'} onClick={createANewAnswer}>Add Answer</Button>
+                            </div>}
+                            bordered
+                            dataSource={question.Answers}
+                            renderItem={answer => <List.Item>
+                                <div>
+                                    {answer.answerTxt}
+                                </div>
+
+                            </List.Item>}
+                        />
 
 
-                            </Panel>
-                        })}
-                    </Collapse>}
+                    </Panel>
+                })}
+            </Collapse>}
 
-                    {!selectedCategory && <h1 className={'text-center text-xl uppercase tracking-wider text-blue-500'}>Select a category to get started</h1>}
 
-                    {/*{questions && <p>{JSON.stringify(questions)}</p>}*/}
+                                {!selectedCategory && <h1 className={'text-center text-xl uppercase tracking-wider text-blue-500'}>Select a category to get started</h1>}
+
+                                {/*{questions && <p>{JSON.stringify(questions)}</p>}*/}
                 </div>
 
             </div>
