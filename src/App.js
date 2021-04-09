@@ -23,6 +23,8 @@ function App() {
 
     const fetchCategories = async () => {
         console.log('this will fetch the categories');
+
+       
         console.log(`${apiUrl}/api/v1/categories`)
         let res = await fetch(`${apiUrl}/api/v1/categories`);
         let data = await res.json();
@@ -54,7 +56,7 @@ function App() {
 
     const fetchQuestionsForCategory = async (id) => {
         console.log('fetch questions for this category id', id);
-        let res = await fetch(`http://localhost:3001/api/v1/categories/${selectedCategory}/questions`);
+        let res = await fetch(`${apiUrl}/api/v1/categories/${id}/questions`);
         let data = await res.json();
         console.log(data);
         setQuestions(data);
@@ -62,10 +64,9 @@ function App() {
 
     };
 
-
-    const fetchAnswersForQuestions = async (id) => {
+    const fetchAnswersForQuestion = async (id) => {
         console.log('fetch answers for this question id', id);
-        let res = await fetch(`http://localhost:3001/api/v1/questions/${selectedQuestion}/answers`);
+        let res = await fetch(`${apiUrl}/api/v1/categories/:categoryId/questions/${id}/answers`);
         let data = await res.json();
         console.log(data);
         setAnswers(data);
@@ -94,21 +95,18 @@ function App() {
     };
 
 
-
-
     const createANewAnswer = async () => {
-        console.log('create a new answer for the question id', setAnswers)
-        let res = await fetch(`${apiUrl}/api/v1/questions/${selectedQuestion}/answers`, {
+        console.log('create an answer for the question id', selectedQuestion)
+        let res = await fetch(`${apiUrl}/api/v1/categories/:categoryId/questions/${selectedQuestion}/answers`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-
+                // 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: JSON.stringify({ answerTxt: answerTxt })
         });
-        fetchAnswersForQuestions(selectedQuestion);
+        fetchAnswersForQuestion(selectedQuestion);
         setAnswerTxt('')
-
         // you will need something called selectedQuestion to keep a track of the question that has been selected
         // a state variable to store the answer text that the user types in
 
@@ -120,12 +118,22 @@ function App() {
 
     };
 
+    const handleKeypress = (e) => {
+        //it triggers by pressing the enter key
+      if (e.key === 'Enter' && questionTxt) {
+        createNewQuestion();
+      }
+      if (e.key === 'Enter' && answerTxt) {
+        createANewAnswer();
+      }
+    };
+
 
     return (
         <>
             <div className="grid grid-cols-12">
                 <div className={'col-span-full border p-5'}>
-                    <h1 className={'text-center text-3xl'}>Questions App</h1>
+                    <h1 className={'text-center text-3xl'}>Questions about Essential Oils</h1>
                 </div>
 
             </div>
@@ -183,9 +191,9 @@ function App() {
                     {/*</Breadcrumb>*/}
 
                     {selectedCategory && <div>
-                        <input value={questionTxt} onChange={(ev) => {
+                        <input value={questionTxt} onKeyPress={handleKeypress} onChange={(ev) => {
                             setQuestionTxt(ev.currentTarget.value);
-                        }} type="text" className={'border p-1 mr-5 w-2/3'} />
+                        }}  type="text" className={'border p-1 mr-5 w-2/3'} />
                         <Button type={'primary'} onClick={createNewQuestion}>Create new question</Button>
                         <br />
                         <br />
@@ -201,23 +209,28 @@ function App() {
                     {/*    })}*/}
                     {/*</ul>*/}
 
-                    {selectedCategory && <Collapse accordion>
-                        {questions && questions.map((question, index) => {
-                            return <Panel header={question.questionTxt} key={index}>
+                    {selectedCategory && <Collapse accordion onChange={(activeKey) => {
+                        setSelectedQuestion(activeKey); fetchAnswersForQuestion(activeKey)
 
+                    }}>
+
+                        {questions && questions.map((question, index) => {
+                            return <Panel header={question.questionTxt} key={question.id} >
 
 
                                 <List
                                     size="small"
                                     // header={<div className={'font-bold'}>Answers List</div>}
+
                                     footer={<div>
-                                        <input value={answerTxt} onChange={(ev) => {
+                                        <input value={answerTxt} onKeyPress={handleKeypress} onChange={(ev) => {
                                             setAnswerTxt(ev.currentTarget.value);
                                         }} type="text" className={'border p-1 mr-5 w-2/3'} />
                                         <Button type={'primary'} onClick={createANewAnswer}>Add Answer</Button>
                                     </div>}
                                     bordered
-                                    dataSource={question.Answers}
+                                    dataSource={answers}
+                                    //dataSource={question.Answers}
                                     renderItem={answer => <List.Item>
                                         <div>
                                             {answer.answerTxt}
@@ -227,8 +240,11 @@ function App() {
                                 />
 
 
+
                             </Panel>
                         })}
+
+
                     </Collapse>}
 
                     {!selectedCategory && <h1 className={'text-center text-xl uppercase tracking-wider text-blue-500'}>Select a category to get started</h1>}
@@ -243,6 +259,3 @@ function App() {
 }
 
 export default App;
-
-
-
