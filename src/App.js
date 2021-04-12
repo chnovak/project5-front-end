@@ -132,7 +132,7 @@ function App() {
     return (
         <>
             <div className="grid grid-cols-12">
-                <div className={'col-span-full border p-5'}>
+                <div className={'col-span-full border p-5 background-color lightblue'}>
                     <h1 className={'text-center text-3xl'}>Questions about Essential Oils</h1>
                 </div>
 
